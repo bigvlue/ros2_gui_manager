@@ -6,12 +6,15 @@ A visual tool for managing ROS2 workspaces, packages, and nodes.
 
 import sys
 import os
+import platform
 import signal
 import threading
 import subprocess
 import shutil
 import json
 from pathlib import Path
+
+IS_MAC = platform.system() == "Darwin"
 
 
 # ─────────────────────────────────────────────
