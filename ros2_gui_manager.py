@@ -17,6 +17,20 @@ from pathlib import Path
 IS_MAC = platform.system() == "Darwin"
 
 
+def _get_bash():
+    """사용 가능한 bash 경로 반환.
+    macOS 기본 /bin/bash 는 v3.2로 ROS2 setup 스크립트 실행 불가.
+    Homebrew bash(5.x)를 우선 사용."""
+    if IS_MAC:
+        for path in ["/opt/homebrew/bin/bash", "/usr/local/bin/bash"]:
+            if Path(path).exists():
+                return path
+    return "bash"
+
+
+BASH = _get_bash()
+
+
 def _get_ros2_search_paths():
     """ROS2가 설치될 수 있는 후보 경로 목록"""
     paths = [Path("/opt/ros")]
