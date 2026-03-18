@@ -64,7 +64,10 @@ def _check_and_install_dependencies():
             else:
                 print(f"  [ERROR] {pkg} 설치 실패")
                 print(f"  수동 설치: pip install {pkg}")
-                print(f"  또는:      sudo apt install python3-pyqt5")
+                if platform.system() == "Darwin":
+                    print(f"  또는:      brew install pyqt@5")
+                else:
+                    print(f"  또는:      sudo apt install python3-pyqt5")
                 return False
         print("\n  설치 완료. 프로그램을 시작합니다...\n")
         return True
