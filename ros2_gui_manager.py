@@ -84,7 +84,7 @@ from PyQt5.QtWidgets import (
     QPushButton, QComboBox, QLineEdit, QTextEdit, QPlainTextEdit, QFormLayout,
     QDialog, QDialogButtonBox, QFileDialog, QMessageBox, QGroupBox,
     QGridLayout, QFrame, QMenu, QScrollArea, QSizePolicy, QToolButton,
-    QStatusBar, QTabWidget
+    QStatusBar, QTabWidget, QSpinBox
 )
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QSize, QTimer
 from PyQt5.QtGui import QFont, QColor, QIcon, QTextCursor
@@ -431,6 +431,22 @@ class MainWindow(QMainWindow):
         sep2 = QLabel("│")
         sep2.setObjectName("bar_sep")
         lay.addWidget(sep2)
+
+        # ROS_DOMAIN_ID
+        domain_lbl = QLabel("Domain ID")
+        domain_lbl.setObjectName("bar_label")
+        self.domain_spin = QSpinBox()
+        self.domain_spin.setRange(0, 232)
+        self.domain_spin.setFixedWidth(72)
+        self.domain_spin.setObjectName("bar_combo")
+        self.domain_spin.setValue(int(os.environ.get("ROS_DOMAIN_ID", "0")))
+        self.domain_spin.valueChanged.connect(self._on_domain_id_changed)
+        lay.addWidget(domain_lbl)
+        lay.addWidget(self.domain_spin)
+
+        sep3 = QLabel("│")
+        sep3.setObjectName("bar_sep")
+        lay.addWidget(sep3)
 
         # External tools (비활성화 상태로 시작)
         self.tool_btns = []
@@ -1025,9 +1041,22 @@ QStatusBar {{ color: {fg_dim}; font-size: 11px; }}
             return
         self.current_distro = distro
         self.ros_env = get_ros_env(distro)
+        self._apply_domain_id_to_env()
         self._log(f"[INFO] ROS2 {distro} sourced")
         self.statusBar().showMessage(f"ROS2 {distro} active")
         self._update_tool_buttons()
+
+    def _on_domain_id_changed(self, value):
+        os.environ["ROS_DOMAIN_ID"] = str(value)
+        if self.ros_env is not None:
+            self.ros_env["ROS_DOMAIN_ID"] = str(value)
+        self._log(f"[INFO] ROS_DOMAIN_ID → {value}")
+        self.statusBar().showMessage(f"ROS_DOMAIN_ID = {value}", 3000)
+
+    def _apply_domain_id_to_env(self):
+        """ros_env 갱신 후 현재 Domain ID 값을 반영"""
+        if self.ros_env is not None:
+            self.ros_env["ROS_DOMAIN_ID"] = str(self.domain_spin.value())
 
     # ── Workspace ─────────────────────────────
 
@@ -1188,6 +1217,7 @@ QStatusBar {{ color: {fg_dim}; font-size: 11px; }}
             return
         env = get_ws_env(self.current_distro, self.current_workspace)
         self.ros_env = env
+        self._apply_domain_id_to_env()
         self._log(f"[OK] Workspace sourced: {setup}")
 
     def _clean_workspace(self):
