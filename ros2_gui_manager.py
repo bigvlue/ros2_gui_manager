@@ -367,6 +367,7 @@ class MainWindow(QMainWindow):
         self._build_ui()
         self._apply_theme()
         self._detect_ros2()
+        self._setup_bashrc_prompt()
 
     # ── UI Construction ───────────────────────
 
@@ -1052,10 +1053,32 @@ QStatusBar {{ color: {fg_dim}; font-size: 11px; }}
         self.statusBar().showMessage(f"ROS2 {distro} active")
         self._update_tool_buttons()
 
+    def _setup_bashrc_prompt(self):
+        """처음 실행 시 ~/.bashrc에 PROMPT_COMMAND 자동 추가 (없는 경우에만)"""
+        marker = "# ros2_gui_manager: domain id sync"
+        bashrc = Path.home() / ".bashrc"
+        prompt_cmd = (
+            f"\n{marker}\n"
+            f"PROMPT_COMMAND='export ROS_DOMAIN_ID=$(cat ~/.ros_domain_id 2>/dev/null || echo 0)'\n"
+        )
+        # ~/.ros_domain_id 초기화
+        domain_file = Path.home() / ".ros_domain_id"
+        if not domain_file.exists():
+            domain_file.write_text(str(self.domain_spin.value()))
+
+        if bashrc.exists() and marker not in bashrc.read_text():
+            with bashrc.open("a") as f:
+                f.write(prompt_cmd)
+
     def _on_domain_id_changed(self, value):
         os.environ["ROS_DOMAIN_ID"] = str(value)
         if self.ros_env is not None:
             self.ros_env["ROS_DOMAIN_ID"] = str(value)
+        # 기존 터미널에서도 반영되도록 파일에 저장
+        try:
+            Path.home().joinpath(".ros_domain_id").write_text(str(value))
+        except Exception:
+            pass
         self._log(f"[INFO] ROS_DOMAIN_ID → {value}")
         self.statusBar().showMessage(f"ROS_DOMAIN_ID = {value}", 3000)
 
