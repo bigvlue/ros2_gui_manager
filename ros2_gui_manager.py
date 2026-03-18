@@ -68,20 +68,27 @@ def _check_and_install_dependencies():
 
     answer = input("  지금 설치하시겠습니까? [Y/n]: ").strip().lower()
     if answer in ("", "y", "yes"):
+        in_venv = sys.prefix != sys.base_prefix
         for pkg in missing:
             print(f"\n  [{pkg}] 설치 중...")
-            # --break-system-packages: Ubuntu 23.04+ 대응
-            result = subprocess.run(
-                [sys.executable, "-m", "pip", "install", pkg,
-                 "--break-system-packages"],
-                capture_output=False
-            )
-            if result.returncode != 0:
-                # --break-system-packages 미지원 구버전 pip 대응
+            if in_venv:
+                # venv 안에서는 --break-system-packages 불필요
                 result = subprocess.run(
                     [sys.executable, "-m", "pip", "install", pkg],
                     capture_output=False
                 )
+            else:
+                # --break-system-packages: Ubuntu 23.04+ 대응
+                result = subprocess.run(
+                    [sys.executable, "-m", "pip", "install", pkg,
+                     "--break-system-packages"],
+                    capture_output=False
+                )
+                if result.returncode != 0:
+                    result = subprocess.run(
+                        [sys.executable, "-m", "pip", "install", pkg],
+                        capture_output=False
+                    )
             if result.returncode == 0:
                 print(f"  [OK] {pkg} 설치 완료")
             else:
