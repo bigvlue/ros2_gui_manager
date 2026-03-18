@@ -2163,7 +2163,9 @@ QStatusBar {{ color: {fg_dim}; font-size: 11px; }}
             s = self.current_workspace / "install" / "setup.bash"
             if s.exists():
                 ws_src = f"source {s} && "
-        init = f"source /opt/ros/{distro}/setup.bash && {ws_src}bash" if distro else "bash"
+        domain_id = os.environ.get("ROS_DOMAIN_ID", "0")
+        env_inject = f"export ROS_DOMAIN_ID={domain_id} && "
+        init = f"{env_inject}source /opt/ros/{distro}/setup.bash && {ws_src}bash" if distro else f"{env_inject}bash"
 
         if IS_MAC:
             # iTerm2가 설치된 경우 우선 사용, 없으면 Terminal.app
