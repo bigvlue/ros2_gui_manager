@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ROS2 GUI Manager
+ROS2 GUI Manager V1.0
 A visual tool for managing ROS2 workspaces, packages, and nodes.
 """
 
