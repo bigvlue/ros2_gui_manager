@@ -2254,10 +2254,7 @@ QStatusBar {{ color: {fg_dim}; font-size: 12px; padding: 2px 8px; }}
             raw_node = raw_node.replace(icon, "")
         node_name = raw_node.strip()
 
-        raw_pkg = item.parent().text(0)
-        for icon in ("📦  ", "🔧  "):
-            raw_pkg = raw_pkg.replace(icon, "")
-        pkg_name = raw_pkg.strip()
+        pkg_name = item.parent().text(0).split("  ", 1)[-1].strip()
 
         node_type = item.data(0, Qt.UserRole + 2) or "python"
         ws_str    = str(self.current_workspace)
